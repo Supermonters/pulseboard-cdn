@@ -31,7 +31,7 @@ const DIGEST_PROMPTS = [
   'Call pulse_board, then say who has been active and what they posted.',
 ]
 
-function haikuFirstModels(): ModelOption[] {
+function buildHaikuFirstModels(): ModelOption[] {
   const models = listDeepSpaceAgentModels('application').map((model) => ({
     id: model.id,
     label: model.label,
@@ -51,6 +51,7 @@ export default function BoardPage() {
   // Remount only when the user asks for a fresh chat. Keying on chatId itself
   // remounts mid-send (null → created id) and aborts the composer stream.
   const [digestMountKey, setDigestMountKey] = useState(0)
+  const digestModels = useMemo(() => buildHaikuFirstModels(), [])
 
   function startFreshDigest() {
     setDigestChatId(null)
@@ -131,7 +132,7 @@ export default function BoardPage() {
               chatId={digestChatId}
               userId={userId}
               onChatCreated={setDigestChatId}
-              models={haikuFirstModels()}
+              models={digestModels}
               emptyStateTitle="Digest this board"
               emptyStateSubtitle="Ask for themes, energy, or who has been active — pulse_board reads the live chat room."
               emptyStatePrompts={DIGEST_PROMPTS}
