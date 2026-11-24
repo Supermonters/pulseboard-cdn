@@ -26,9 +26,9 @@ import { APP_NAME, PULSE_CHANNEL } from '../../../constants'
 const REACTION_EMOJIS = ['👍', '🔥', '💡', '❤️', '👀'] as const
 
 const DIGEST_PROMPTS = [
-  'Summarize the board: themes, energy, and open questions. Use tools to read recent pulses.',
-  'What are the 3 most important pulses right now, and why?',
-  'Who has been active, and what did they say?',
+  'Call pulse_board, then summarize themes, energy, and open questions.',
+  'Call pulse_board, then name the 3 most important pulses and why.',
+  'Call pulse_board, then say who has been active and what they posted.',
 ]
 
 function haikuFirstModels(): ModelOption[] {
@@ -133,7 +133,7 @@ export default function BoardPage() {
               onChatCreated={setDigestChatId}
               models={haikuFirstModels()}
               emptyStateTitle="Digest this board"
-              emptyStateSubtitle="Ask for themes, energy, or who has been active — tools can read recent pulses."
+              emptyStateSubtitle="Ask for themes, energy, or who has been active — pulse_board reads the live chat room."
               emptyStatePrompts={DIGEST_PROMPTS}
               compact
               className="min-h-0 min-w-0 flex-1 overflow-hidden"

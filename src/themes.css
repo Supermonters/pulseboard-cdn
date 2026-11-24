@@ -16,32 +16,32 @@
  *   4. Switch to it via `data-theme` on <html> in index.html.
  */
 
-/* Signal — PulseBoard product theme: deep wine / burgundy, ink type, warm gold accent. */
+/* Signal — full wine / burgundy (not beige cream). Deeper rose wash + ink type + gold. */
 [data-theme="signal"] {
   color-scheme: light;
-  --color-background: #f3e9e7;
-  --color-foreground: #2a1218;
-  --color-card: #faf3f1;
-  --color-card-foreground: #2a1218;
-  --color-popover: #fff8f6;
-  --color-popover-foreground: #2a1218;
-  --color-primary: #722f37;
-  --color-primary-foreground: #fff7f5;
-  --color-secondary: #ead5d0;
-  --color-secondary-foreground: #3a1a22;
-  --color-muted: #ebd8d4;
-  --color-muted-foreground: #6e4550;
+  --color-background: #e4c8c4;
+  --color-foreground: #1f0b11;
+  --color-card: #f3e0dc;
+  --color-card-foreground: #1f0b11;
+  --color-popover: #f8ebe8;
+  --color-popover-foreground: #1f0b11;
+  --color-primary: #5c1824;
+  --color-primary-foreground: #fff5f2;
+  --color-secondary: #d4a8a2;
+  --color-secondary-foreground: #2a0f16;
+  --color-muted: #d9b3ad;
+  --color-muted-foreground: #5a2e38;
   --color-accent: #c9a227;
-  --color-accent-foreground: #1f1600;
+  --color-accent-foreground: #1a1200;
   --color-destructive: #9f1239;
   --color-destructive-foreground: #fff1f2;
-  --color-border: #d4b5b0;
-  --color-input: #dcc0bb;
-  --color-ring: #722f37;
-  --shadow-card: 0 10px 30px -18px rgba(42, 18, 24, 0.35);
-  --shadow-card-hover: 0 16px 40px -16px rgba(114, 47, 55, 0.35);
-  --color-shell: #e8d4cf;
-  --color-shell-panel: #faf3f1;
+  --color-border: #c4928c;
+  --color-input: #c99a94;
+  --color-ring: #5c1824;
+  --shadow-card: 0 12px 34px -18px rgba(31, 11, 17, 0.45);
+  --shadow-card-hover: 0 18px 44px -16px rgba(92, 24, 36, 0.4);
+  --color-shell: #d2aaa4;
+  --color-shell-panel: #f3e0dc;
   --radius: 0.85rem;
   --font-sans: 'Sora', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Fraunces', Georgia, serif;
