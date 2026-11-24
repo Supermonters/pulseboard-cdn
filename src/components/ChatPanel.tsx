@@ -23,6 +23,14 @@ import {
   Square,
 } from 'lucide-react'
 import { listDeepSpaceAgentModels, useQuery } from 'deepspace'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui'
 import { EmptyState, MessageTurn, ThinkingIndicator } from './ChatPanel.messages'
 import { useStreamingChat } from './ChatPanel.stream'
 
@@ -58,6 +66,10 @@ export type ChatPanelProps = {
   models?: ModelOption[]
   /** Clickable prompts shown when the conversation is empty. */
   emptyStatePrompts?: string[]
+  /** Empty-state heading (defaults to a generic assistant greeting). */
+  emptyStateTitle?: string
+  /** Empty-state supporting copy under the title. */
+  emptyStateSubtitle?: string
   /** Applied to the outer container. */
   className?: string
   /** Optional content rendered above the messages. */
@@ -87,6 +99,8 @@ export function ChatPanel({
   onChatCreated,
   models: modelOptions,
   emptyStatePrompts = DEFAULT_PROMPTS,
+  emptyStateTitle,
+  emptyStateSubtitle,
   className,
   header,
   compact = false,
@@ -101,14 +115,20 @@ export function ChatPanel({
     initialModelId(models),
   )
 
-  // A custom model list may change at runtime. Never keep sending an id the
-  // picker no longer offers (the worker correctly rejects unknown ids).
+  // Compare by id list, not array identity — parents often pass a fresh
+  // `models={...}` array each render, which must not thrash selection.
+  const modelIdsKey = models.map((model) => model.id).join('\0')
+  const firstModelId = models[0]?.id
   useEffect(() => {
-    if (modelId && models.some((model) => model.id === modelId)) return
-    setModelId(models[0]?.id)
-  }, [modelId, models])
+    if (modelId && modelIdsKey.split('\0').includes(modelId)) return
+    setModelId(firstModelId)
+  }, [modelId, modelIdsKey, firstModelId])
 
-  const groupedModels = useMemo(() => groupModelsByProvider(models), [models])
+  const groupedModels = useMemo(
+    () => groupModelsByProvider(models),
+    // models content is keyed by modelIdsKey; include models for the grouping payload
+    [modelIdsKey, models],
+  )
   const selectedModel = models.find((model) => model.id === modelId)
 
   // Uncontrolled fallback: with `chatId={null}` the panel keeps the chat it
@@ -244,9 +264,11 @@ export function ChatPanel({
 
   return (
     <div
-      className={`relative flex h-full min-h-0 flex-col bg-background text-foreground ${textSize} ${className ?? ''}`}
+      className={`relative flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background text-foreground ${textSize} ${className ?? ''}`}
     >
-      {header && <div className="shrink-0">{header}</div>}
+      {header && (
+        <div className={`shrink-0 ${horizontalPadding} pt-3`}>{header}</div>
+      )}
 
       <div
         ref={scrollRef}
@@ -254,12 +276,17 @@ export function ChatPanel({
         aria-live="polite"
         aria-atomic="false"
         aria-label="Assistant conversation"
-        className={`min-h-0 flex-1 overflow-y-auto ${horizontalPadding} py-8`}
+        className={`min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto ${horizontalPadding} py-6`}
       >
         {messages.length === 0 ? (
-          <EmptyState prompts={emptyStatePrompts} onPick={selectPrompt} />
+          <EmptyState
+            title={emptyStateTitle}
+            subtitle={emptyStateSubtitle}
+            prompts={emptyStatePrompts}
+            onPick={selectPrompt}
+          />
         ) : (
-          <div className={`mx-auto flex max-w-[44rem] flex-col ${turnGap}`}>
+          <div className={`mx-auto flex w-full min-w-0 max-w-[44rem] flex-col ${turnGap}`}>
             {messages.map((message) => (
               <MessageTurn
                 key={message.id}
@@ -275,14 +302,14 @@ export function ChatPanel({
       </div>
 
       {error && (
-        <div className={`mx-auto mb-2 w-full max-w-[44rem] ${horizontalPadding}`} role="alert">
+        <div className={`mx-auto mb-2 w-full min-w-0 max-w-[44rem] ${horizontalPadding}`} role="alert">
           <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-destructive">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <div className="flex-1 text-[13px] leading-relaxed">{error.message}</div>
+            <div className="min-w-0 flex-1 break-words text-[13px] leading-relaxed">{error.message}</div>
             <button
               type="button"
               onClick={retry}
-              className="rounded-md border border-destructive/30 px-2 py-0.5 text-[12px] font-medium transition-colors hover:bg-destructive/10"
+              className="shrink-0 rounded-md border border-destructive/30 px-2 py-0.5 text-[12px] font-medium transition-colors hover:bg-destructive/10"
             >
               Retry
             </button>
@@ -296,9 +323,10 @@ export function ChatPanel({
             event.preventDefault()
             submit()
           }}
-          className="mx-auto w-full max-w-[44rem]"
+          className="mx-auto w-full min-w-0 max-w-[44rem]"
         >
-          <div className="relative rounded-2xl border border-border bg-background transition-colors focus-within:border-foreground/25 focus-within:ring-4 focus-within:ring-foreground/[0.04]">
+          {/* overflow-visible so the model menu isn't clipped; text still wraps via min-w-0 */}
+          <div className="relative min-w-0 overflow-visible rounded-2xl border border-border bg-card transition-colors focus-within:border-primary/40 focus-within:ring-4 focus-within:ring-primary/10">
             <textarea
               ref={inputRef}
               rows={1}
@@ -307,10 +335,10 @@ export function ChatPanel({
               onKeyDown={handleKeyDown}
               disabled={disabled}
               placeholder={disabled ? 'Creating chat…' : 'Message the assistant…'}
-              className="block w-full resize-none bg-transparent px-4 pt-3 pb-12 leading-[1.5] text-foreground placeholder:text-muted-foreground/60 outline-none disabled:cursor-not-allowed"
+              className="block w-full min-w-0 resize-none overflow-x-hidden bg-transparent px-4 pt-3 pb-12 leading-[1.5] text-foreground placeholder:text-muted-foreground/60 outline-none disabled:cursor-not-allowed"
             />
 
-            <div className="pointer-events-none absolute inset-x-2 bottom-2 flex items-center justify-between">
+            <div className="pointer-events-none absolute inset-x-2 bottom-2 z-20 flex items-center justify-between gap-2">
               {groupedModels.length > 0 && modelId && selectedModel ? (
                 <ModelPicker
                   grouped={groupedModels}
@@ -325,7 +353,7 @@ export function ChatPanel({
                   type="button"
                   onClick={stop}
                   aria-label="Stop generating"
-                  className="pointer-events-auto inline-flex h-8 w-8 items-center justify-center rounded-full bg-foreground text-background transition-opacity hover:opacity-90"
+                  className="pointer-events-auto inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-opacity hover:opacity-90"
                 >
                   <Square className="h-3 w-3 fill-current" aria-hidden="true" />
                 </button>
@@ -334,7 +362,7 @@ export function ChatPanel({
                   type="submit"
                   disabled={!canSend}
                   aria-label="Send message"
-                  className="pointer-events-auto inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground transition-all hover:opacity-90 disabled:bg-muted disabled:text-muted-foreground/60 disabled:cursor-not-allowed"
+                  className="pointer-events-auto inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground/60"
                 >
                   <ArrowUp className="h-4 w-4" aria-hidden="true" />
                 </button>
@@ -382,71 +410,46 @@ function ModelPicker({
   label: string
   onChange: (id: string) => void
 }) {
-  const [open, setOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const closeOutside = (event: MouseEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) setOpen(false)
-    }
-    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('mousedown', closeOutside)
-    document.addEventListener('keydown', closeOnEscape)
-    return () => {
-      document.removeEventListener('mousedown', closeOutside)
-      document.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [open])
-
+  // Portal the menu (DropdownMenuContent) so nested overflow-hidden panels
+  // on the board digest column cannot clip or swallow the picker.
   return (
-    <div ref={containerRef} className="pointer-events-auto relative inline-flex">
-      <button
+    <DropdownMenu>
+      <DropdownMenuTrigger
         type="button"
-        onClick={() => setOpen((current) => !current)}
-        className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
-        aria-haspopup="menu"
-        aria-expanded={open}
+        aria-label="Select model"
+        className="pointer-events-auto inline-flex items-center gap-1 rounded-full px-2 py-1 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
       >
-        <span className="max-w-[10rem] truncate">{label}</span>
+        <span className="max-w-[8rem] truncate sm:max-w-[10rem]">{label}</span>
         <ChevronDown className="h-3 w-3 opacity-70" aria-hidden="true" />
-      </button>
-
-      {open && (
-        <div
-          role="menu"
-          className="absolute bottom-full left-0 z-30 mb-2 w-64 max-h-[22rem] overflow-y-auto rounded-lg border border-border bg-popover text-popover-foreground shadow-lg"
-        >
-          {grouped.map(([provider, items], providerIndex) => (
-            <div key={provider}>
-              {providerIndex > 0 && <div className="border-t border-border/60" />}
-              <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                {provider}
-              </div>
-              {items.map((model) => {
-                const active = model.id === modelId
-                return (
-                  <button
-                    key={model.id}
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      onChange(model.id)
-                      setOpen(false)
-                    }}
-                    className={`flex w-full items-center justify-between gap-3 px-3 py-1.5 text-left text-[12.5px] transition-colors ${active ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/50'}`}
-                  >
-                    <span className="truncate">{model.label}</span>
-                    {active && <Check className="h-3 w-3 shrink-0 text-foreground/60" aria-hidden="true" />}
-                  </button>
-                )
-              })}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        side="top"
+        align="start"
+        sideOffset={8}
+        className="w-[min(16rem,calc(100vw-3rem))]"
+      >
+        {grouped.map(([provider, items], providerIndex) => (
+          <div key={provider}>
+            {providerIndex > 0 && <DropdownMenuSeparator />}
+            <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              {provider}
+            </DropdownMenuLabel>
+            {items.map((model) => {
+              const active = model.id === modelId
+              return (
+                <DropdownMenuItem
+                  key={model.id}
+                  onClick={() => onChange(model.id)}
+                  className="justify-between gap-3 text-[12.5px]"
+                >
+                  <span className="truncate">{model.label}</span>
+                  {active && <Check className="h-3 w-3 shrink-0 text-foreground/60" aria-hidden="true" />}
+                </DropdownMenuItem>
+              )
+            })}
+          </div>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

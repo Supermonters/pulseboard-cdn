@@ -31,7 +31,7 @@ const DIGEST_PROMPTS = [
   'Call pulse_board, then say who has been active and what they posted.',
 ]
 
-function haikuFirstModels(): ModelOption[] {
+function buildHaikuFirstModels(): ModelOption[] {
   const models = listDeepSpaceAgentModels('application').map((model) => ({
     id: model.id,
     label: model.label,
@@ -48,6 +48,8 @@ export default function BoardPage() {
   const { user } = useUser()
   const [digestOpen, setDigestOpen] = useState(false)
   const [digestChatId, setDigestChatId] = useState<string | null>(null)
+  const digestModels = useMemo(() => buildHaikuFirstModels(), [])
+
 
   return (
     <div className="pulse-board flex h-full min-h-0 flex-col bg-background">
@@ -123,7 +125,7 @@ export default function BoardPage() {
               chatId={digestChatId}
               userId={userId}
               onChatCreated={setDigestChatId}
-              models={haikuFirstModels()}
+              models={digestModels}
               emptyStatePrompts={DIGEST_PROMPTS}
               compact
               className="min-h-0 flex-1"
