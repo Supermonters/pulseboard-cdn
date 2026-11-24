@@ -6,7 +6,7 @@ export const THEMES = [
   {
     id: 'signal',
     label: 'Signal',
-    description: 'Mist teal atmosphere with ink type and a live pulse accent.',
+    description: 'Deep wine atmosphere with ink type and a warm gold pulse accent.',
   },
   {
     id: 'slate',

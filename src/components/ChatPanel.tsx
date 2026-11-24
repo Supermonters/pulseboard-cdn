@@ -58,6 +58,10 @@ export type ChatPanelProps = {
   models?: ModelOption[]
   /** Clickable prompts shown when the conversation is empty. */
   emptyStatePrompts?: string[]
+  /** Empty-state heading (defaults to a generic assistant greeting). */
+  emptyStateTitle?: string
+  /** Empty-state supporting copy under the title. */
+  emptyStateSubtitle?: string
   /** Applied to the outer container. */
   className?: string
   /** Optional content rendered above the messages. */
@@ -87,6 +91,8 @@ export function ChatPanel({
   onChatCreated,
   models: modelOptions,
   emptyStatePrompts = DEFAULT_PROMPTS,
+  emptyStateTitle,
+  emptyStateSubtitle,
   className,
   header,
   compact = false,
@@ -244,9 +250,11 @@ export function ChatPanel({
 
   return (
     <div
-      className={`relative flex h-full min-h-0 flex-col bg-background text-foreground ${textSize} ${className ?? ''}`}
+      className={`relative flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background text-foreground ${textSize} ${className ?? ''}`}
     >
-      {header && <div className="shrink-0">{header}</div>}
+      {header && (
+        <div className={`shrink-0 ${horizontalPadding} pt-3`}>{header}</div>
+      )}
 
       <div
         ref={scrollRef}
@@ -254,12 +262,17 @@ export function ChatPanel({
         aria-live="polite"
         aria-atomic="false"
         aria-label="Assistant conversation"
-        className={`min-h-0 flex-1 overflow-y-auto ${horizontalPadding} py-8`}
+        className={`min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto ${horizontalPadding} py-6`}
       >
         {messages.length === 0 ? (
-          <EmptyState prompts={emptyStatePrompts} onPick={selectPrompt} />
+          <EmptyState
+            title={emptyStateTitle}
+            subtitle={emptyStateSubtitle}
+            prompts={emptyStatePrompts}
+            onPick={selectPrompt}
+          />
         ) : (
-          <div className={`mx-auto flex max-w-[44rem] flex-col ${turnGap}`}>
+          <div className={`mx-auto flex w-full min-w-0 max-w-[44rem] flex-col ${turnGap}`}>
             {messages.map((message) => (
               <MessageTurn
                 key={message.id}
@@ -275,14 +288,14 @@ export function ChatPanel({
       </div>
 
       {error && (
-        <div className={`mx-auto mb-2 w-full max-w-[44rem] ${horizontalPadding}`} role="alert">
+        <div className={`mx-auto mb-2 w-full min-w-0 max-w-[44rem] ${horizontalPadding}`} role="alert">
           <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-destructive">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <div className="flex-1 text-[13px] leading-relaxed">{error.message}</div>
+            <div className="min-w-0 flex-1 break-words text-[13px] leading-relaxed">{error.message}</div>
             <button
               type="button"
               onClick={retry}
-              className="rounded-md border border-destructive/30 px-2 py-0.5 text-[12px] font-medium transition-colors hover:bg-destructive/10"
+              className="shrink-0 rounded-md border border-destructive/30 px-2 py-0.5 text-[12px] font-medium transition-colors hover:bg-destructive/10"
             >
               Retry
             </button>
@@ -296,9 +309,9 @@ export function ChatPanel({
             event.preventDefault()
             submit()
           }}
-          className="mx-auto w-full max-w-[44rem]"
+          className="mx-auto w-full min-w-0 max-w-[44rem]"
         >
-          <div className="relative rounded-2xl border border-border bg-background transition-colors focus-within:border-foreground/25 focus-within:ring-4 focus-within:ring-foreground/[0.04]">
+          <div className="relative min-w-0 overflow-hidden rounded-2xl border border-border bg-card transition-colors focus-within:border-primary/40 focus-within:ring-4 focus-within:ring-primary/10">
             <textarea
               ref={inputRef}
               rows={1}
@@ -307,10 +320,10 @@ export function ChatPanel({
               onKeyDown={handleKeyDown}
               disabled={disabled}
               placeholder={disabled ? 'Creating chat…' : 'Message the assistant…'}
-              className="block w-full resize-none bg-transparent px-4 pt-3 pb-12 leading-[1.5] text-foreground placeholder:text-muted-foreground/60 outline-none disabled:cursor-not-allowed"
+              className="block w-full min-w-0 resize-none bg-transparent px-4 pt-3 pb-12 leading-[1.5] text-foreground placeholder:text-muted-foreground/60 outline-none disabled:cursor-not-allowed"
             />
 
-            <div className="pointer-events-none absolute inset-x-2 bottom-2 flex items-center justify-between">
+            <div className="pointer-events-none absolute inset-x-2 bottom-2 flex items-center justify-between gap-2">
               {groupedModels.length > 0 && modelId && selectedModel ? (
                 <ModelPicker
                   grouped={groupedModels}
@@ -325,7 +338,7 @@ export function ChatPanel({
                   type="button"
                   onClick={stop}
                   aria-label="Stop generating"
-                  className="pointer-events-auto inline-flex h-8 w-8 items-center justify-center rounded-full bg-foreground text-background transition-opacity hover:opacity-90"
+                  className="pointer-events-auto inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-opacity hover:opacity-90"
                 >
                   <Square className="h-3 w-3 fill-current" aria-hidden="true" />
                 </button>
@@ -334,7 +347,7 @@ export function ChatPanel({
                   type="submit"
                   disabled={!canSend}
                   aria-label="Send message"
-                  className="pointer-events-auto inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground transition-all hover:opacity-90 disabled:bg-muted disabled:text-muted-foreground/60 disabled:cursor-not-allowed"
+                  className="pointer-events-auto inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground/60"
                 >
                   <ArrowUp className="h-4 w-4" aria-hidden="true" />
                 </button>
@@ -410,14 +423,14 @@ function ModelPicker({
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <span className="max-w-[10rem] truncate">{label}</span>
+        <span className="max-w-[8rem] truncate sm:max-w-[10rem]">{label}</span>
         <ChevronDown className="h-3 w-3 opacity-70" aria-hidden="true" />
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute bottom-full left-0 z-30 mb-2 w-64 max-h-[22rem] overflow-y-auto rounded-lg border border-border bg-popover text-popover-foreground shadow-lg"
+          className="absolute bottom-full left-0 z-30 mb-2 w-[min(16rem,calc(100vw-3rem))] max-h-[22rem] overflow-x-hidden overflow-y-auto rounded-lg border border-border bg-popover text-popover-foreground shadow-lg"
         >
           {grouped.map(([provider, items], providerIndex) => (
             <div key={provider}>
