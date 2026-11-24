@@ -26,9 +26,9 @@ import { APP_NAME, PULSE_CHANNEL } from '../../../constants'
 const REACTION_EMOJIS = ['👍', '🔥', '💡', '❤️', '👀'] as const
 
 const DIGEST_PROMPTS = [
-  'Summarize the current pulse board: key themes, energy, and open questions. Use tools to read recent messages.',
-  'What are the 3 most important pulses right now, and why?',
-  'List who has been active and what they said, briefly.',
+  'Call pulse_board, then summarize themes, energy, and open questions.',
+  'Call pulse_board, then name the 3 most important pulses and why.',
+  'Call pulse_board, then say who has been active and what they posted.',
 ]
 
 function haikuFirstModels(): ModelOption[] {
