@@ -37,8 +37,8 @@ export const MessageTurn = memo(function MessageTurn({
 
   if (role === 'user') {
     return (
-      <div className="flex justify-end">
-        <div className="max-w-[85%] rounded-2xl bg-muted px-4 py-2.5 leading-relaxed text-foreground whitespace-pre-wrap break-words">
+      <div className="flex min-w-0 justify-end">
+        <div className="max-w-[85%] min-w-0 rounded-2xl bg-muted px-4 py-2.5 leading-relaxed break-words whitespace-pre-wrap text-foreground">
           {content}
         </div>
       </div>
@@ -48,17 +48,17 @@ export const MessageTurn = memo(function MessageTurn({
   if (role === 'system') {
     const summary = content.replace(/^Earlier conversation summary:\n?/, '')
     return (
-      <div className="rounded-md border border-dashed border-border bg-muted/30 px-3 py-2 text-[12px] text-muted-foreground">
+      <div className="min-w-0 rounded-md border border-dashed border-border bg-muted/30 px-3 py-2 text-[12px] text-muted-foreground">
         <div className="mb-1 font-medium tracking-tight text-foreground/80">
           Earlier conversation summary
         </div>
-        <div className="whitespace-pre-wrap leading-relaxed">{summary}</div>
+        <div className="break-words whitespace-pre-wrap leading-relaxed">{summary}</div>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-w-0 flex-col gap-3">
       {orderedParts.map((part, index) => {
         if (part.type === 'text') {
           if (!part.text) return null
@@ -74,21 +74,25 @@ export const MessageTurn = memo(function MessageTurn({
 export function EmptyState({
   prompts,
   onPick,
+  title = 'How can I help?',
+  subtitle = 'I can inspect collections and help update records using your permissions.',
 }: {
   prompts: string[]
   onPick: (prompt: string) => void
+  title?: string
+  subtitle?: string
 }) {
   return (
-    <div className="mx-auto flex h-full max-w-[28rem] flex-col items-start justify-center gap-4 px-2">
-      <div className="space-y-1">
-        <h2 className="text-[17px] font-medium tracking-tight text-foreground">
-          How can I help?
+    <div className="mx-auto flex h-full w-full min-w-0 max-w-full flex-col items-start justify-center gap-4">
+      <div className="w-full min-w-0 space-y-1">
+        <h2 className="break-words text-[17px] font-medium tracking-tight text-foreground">
+          {title}
         </h2>
-        <p className="text-[13px] leading-relaxed text-muted-foreground">
-          I can inspect collections and help update records using your permissions.
+        <p className="break-words text-[13px] leading-relaxed text-muted-foreground">
+          {subtitle}
         </p>
       </div>
-      <div className="flex flex-col gap-0.5 pt-2">
+      <div className="flex w-full min-w-0 flex-col gap-0.5 pt-2">
         <div className="pb-1 text-[10.5px] font-medium tracking-[0.08em] uppercase text-muted-foreground">
           Try
         </div>
@@ -97,10 +101,12 @@ export function EmptyState({
             key={prompt}
             type="button"
             onClick={() => onPick(prompt)}
-            className="group flex items-center gap-2 py-1 text-left text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+            className="group flex w-full min-w-0 items-start gap-2 py-1.5 text-left text-[13px] text-muted-foreground transition-colors hover:text-foreground"
           >
-            <span className="h-px w-3 shrink-0 bg-border transition-colors group-hover:bg-muted-foreground" />
-            <span className="truncate">{prompt}</span>
+            <span className="mt-2 h-px w-3 shrink-0 bg-border transition-colors group-hover:bg-muted-foreground" />
+            <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">
+              {prompt}
+            </span>
           </button>
         ))}
       </div>
@@ -149,7 +155,7 @@ function isToolInvocation(value: unknown): value is ToolInvocation {
 function MarkdownText({ children }: { children: string }) {
   return (
     <div
-      className="text-foreground leading-relaxed
+      className="min-w-0 text-foreground leading-relaxed [overflow-wrap:anywhere]
                  [&_p]:my-2 [&_p]:[overflow-wrap:anywhere] [&>*:first-child]:mt-0 [&>*:last-child]:mb-0
                  [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:my-3
                  [&_h2]:text-base [&_h2]:font-semibold [&_h2]:my-3
@@ -162,7 +168,7 @@ function MarkdownText({ children }: { children: string }) {
                  [&_blockquote]:my-2 [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground
                  [&_hr]:my-3 [&_hr]:border-border
                  [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-[0.9em]
-                 [&_pre]:bg-zinc-900 [&_pre]:text-zinc-100 [&_pre]:rounded-md [&_pre]:p-3 [&_pre]:my-2 [&_pre]:overflow-x-auto
+                 [&_pre]:bg-zinc-900 [&_pre]:text-zinc-100 [&_pre]:rounded-md [&_pre]:p-3 [&_pre]:my-2 [&_pre]:max-w-full [&_pre]:overflow-x-auto
                  [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:rounded-none [&_pre_code]:text-inherit
                  [&_table]:my-2 [&_table]:w-full [&_table]:border-collapse
                  [&_th]:border [&_th]:border-border [&_th]:px-2 [&_th]:py-1 [&_th]:font-semibold [&_th]:text-left

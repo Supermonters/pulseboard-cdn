@@ -48,8 +48,15 @@ export default function BoardPage() {
   const { user } = useUser()
   const [digestOpen, setDigestOpen] = useState(false)
   const [digestChatId, setDigestChatId] = useState<string | null>(null)
+  // Remount only when the user asks for a fresh chat. Keying on chatId itself
+  // remounts mid-send (null → created id) and aborts the composer stream.
+  const [digestMountKey, setDigestMountKey] = useState(0)
   const digestModels = useMemo(() => buildHaikuFirstModels(), [])
 
+  function startFreshDigest() {
+    setDigestChatId(null)
+    setDigestMountKey((key) => key + 1)
+  }
 
   return (
     <div className="pulse-board flex h-full min-h-0 flex-col bg-background">
@@ -65,7 +72,7 @@ export default function BoardPage() {
             Live room · signed in as {user?.name || 'you'}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             onClick={() => setDigestOpen((open) => !open)}
@@ -83,12 +90,12 @@ export default function BoardPage() {
         </div>
       </header>
 
-      <div className="grid min-h-0 flex-1 lg:grid-cols-[220px_minmax(0,1fr)_minmax(280px,360px)]">
-        <aside className="hidden min-h-0 border-r border-border/70 bg-shell/60 p-4 lg:block">
+      <div className="grid min-h-0 flex-1 lg:grid-cols-[220px_minmax(0,1fr)_minmax(0,360px)]">
+        <aside className="hidden min-h-0 min-w-0 overflow-hidden border-r border-border/70 bg-shell/60 p-4 lg:block">
           <PresencePanel />
         </aside>
 
-        <section className="flex min-h-0 min-w-0 flex-col">
+        <section className="flex min-h-0 min-w-0 flex-col overflow-hidden">
           {status !== 'ready' && (
             <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
               Connecting to the pulse room…
@@ -109,31 +116,33 @@ export default function BoardPage() {
         <aside
           className={`${
             digestOpen ? 'flex' : 'hidden lg:flex'
-          } min-h-0 flex-col border-l border-border/70 bg-shell-panel`}
+          } min-h-0 min-w-0 flex-col overflow-hidden border-l border-border/70 bg-shell-panel`}
         >
-          <div className="border-b border-border/70 px-4 py-3">
-            <h2 className="font-[family-name:var(--font-display)] text-base font-semibold">
+          <div className="shrink-0 border-b border-border/70 px-4 py-3">
+            <h2 className="font-[family-name:var(--font-display)] text-base font-semibold text-foreground">
               Board digest
             </h2>
-            <p className="text-xs text-muted-foreground">
+            <p className="mt-0.5 text-xs leading-relaxed break-words text-muted-foreground">
               Haiku-preferred summary of the live pulses via DeepSpace AI tools.
             </p>
           </div>
           {userId ? (
             <ChatPanel
-              key={digestChatId ?? 'new-digest'}
+              key={digestMountKey}
               chatId={digestChatId}
               userId={userId}
               onChatCreated={setDigestChatId}
               models={digestModels}
+              emptyStateTitle="Digest this board"
+              emptyStateSubtitle="Ask for themes, energy, or who has been active — pulse_board reads the live chat room."
               emptyStatePrompts={DIGEST_PROMPTS}
               compact
-              className="min-h-0 flex-1"
+              className="min-h-0 min-w-0 flex-1 overflow-hidden"
               header={
                 <button
                   type="button"
-                  className="mb-2 w-full rounded-lg border border-border bg-secondary/60 px-3 py-2 text-left text-xs font-medium text-foreground transition hover:bg-secondary"
-                  onClick={() => setDigestChatId(null)}
+                  className="w-full rounded-lg border border-border bg-secondary/60 px-3 py-2 text-left text-xs font-medium text-foreground transition hover:bg-secondary"
+                  onClick={startFreshDigest}
                 >
                   Start a fresh digest chat
                 </button>
